@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.List;
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -43,18 +45,39 @@ public class UserService {
         user.getRoles().add(role);
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         User savedUser=userRepository.save(user);
-        UserResponse response= new UserResponse(savedUser.getId(), savedUser.getName(), savedUser.getUsername());
+        UserResponse response= new UserResponse(savedUser.getId(), savedUser.getName(), savedUser.getUsername(),savedUser.getRoles());
         return response;
     }
 
-    public UserResponse getUser(Long id)
+    public List<UserResponse> getAllUsers()
+    {
+      return  userRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+
+    }
+    public UserResponse getUserById(Long id)
     {
        User savedUser= userRepository.findById(id).orElseThrow(
                ()->new RuntimeException("user not found with this: "+id)
 
        );
-        UserResponse response= new UserResponse(savedUser.getId(), savedUser.getName(), savedUser.getUsername());
+        UserResponse response= new UserResponse(savedUser.getId(), savedUser.getName(), savedUser.getUsername(),savedUser.getRoles());
        return response;
+    }
+    public UserResponse getUserPrifileBYName(String name)
+    {
+       User user=userRepository.findByUsername(name).orElseThrow(
+                ()-> new RuntimeException("No user exist with this name")
+        );
+       return  mapToResponse(user);
+
+    }
+
+    private UserResponse mapToResponse(User user)
+    {
+        return new UserResponse(user.getId(), user.getName(), user.getUsername(), user.getRoles());
     }
 
 }

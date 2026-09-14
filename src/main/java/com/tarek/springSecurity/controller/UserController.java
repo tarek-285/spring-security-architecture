@@ -5,6 +5,8 @@ import com.tarek.springSecurity.dto.UserResponse;
 import com.tarek.springSecurity.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,15 +21,14 @@ public class UserController {
     }
 
 
-    @GetMapping
-    public ResponseEntity<List<UserResponse>> getAllUser()
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getMyProfile(
+            @AuthenticationPrincipal UserDetails userDetails
+            )
     {
-        return null;
-    }
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUser(@PathVariable Long id)
-    {
-        return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(id));
+       UserResponse userResponse= userService.getUserPrifileBYName(userDetails.getUsername());
+       return ResponseEntity.ok(userResponse);
+
     }
 
 

@@ -43,8 +43,9 @@ public class SecurityConfig {
                 .authenticationProvider(provider)
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())
-                .authorizeHttpRequests(a->
-                        a.requestMatchers("/api/auth/register","/api/auth/register").permitAll()
+                .authorizeHttpRequests(auth->auth
+                        .requestMatchers("/api/auth/register","/api/auth/register").permitAll()
+                                .requestMatchers("/api/admin/**").hasAnyRole("ADMIN")
 
                                 .anyRequest().authenticated()
                         );
