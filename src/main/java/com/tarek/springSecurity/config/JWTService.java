@@ -24,7 +24,7 @@ public class JWTService {
                  Decoders.BASE64.decode(secret)
          );
      }
-    private String generateToken(String username)
+    public String generateToken(String username)
     {
         return Jwts.builder()
                 .setSubject(username)
@@ -42,7 +42,7 @@ public class JWTService {
         return Jwts.parserBuilder()
                 .setSigningKey(getSingingKey())
                 .build()
-                .parseClaimsJwt(token)
+                .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
     };
@@ -51,7 +51,10 @@ public class JWTService {
     public boolean isValidToken(String toke)
     {
       try {
-          Jwts.parserBuilder().setSigningKey(getSingingKey()).build().parseClaimsJwt(toke);
+          Jwts.parserBuilder()
+                  .setSigningKey(getSingingKey())
+                  .build()
+                  .parseClaimsJws(toke);
           return true;
       }
       catch (JwtException | IllegalArgumentException e) {
