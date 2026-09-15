@@ -8,6 +8,7 @@ import com.tarek.springSecurity.entity.User;
 import com.tarek.springSecurity.repository.Rolerepository;
 import com.tarek.springSecurity.repository.UserRepository;
 import com.tarek.springSecurity.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,13 +35,15 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> registerUser(@RequestBody UserRequest userRequest)
+    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRequest userRequest)
     {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(userRequest));
     }
     @PostMapping ("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest login)
     {
+
+
         Authentication token =new UsernamePasswordAuthenticationToken(
                 login.getUsername(),
                 login.getPassword()

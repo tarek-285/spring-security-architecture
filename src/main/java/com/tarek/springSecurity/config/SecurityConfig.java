@@ -11,14 +11,22 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
-
+    String host="http://localhost:5173";
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter)
+    {
+        this.jwtAuthenticationFilter=jwtAuthenticationFilter;
+    }
 
     @Bean
-    public PasswordEncoder getpasswordEncoder()
-    {
+    public PasswordEncoder getPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -26,9 +34,8 @@ public class SecurityConfig {
     public DaoAuthenticationProvider authenticationProvider(
             UserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder
-    )
-    {
-        DaoAuthenticationProvider provider= new DaoAuthenticationProvider(userDetailsService);
+    ) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
@@ -37,27 +44,48 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity httpSecurity,
             DaoAuthenticationProvider provider
-    )
-    {
-        httpSecurity.csrf(c->c.disable())
+    ) throws Exception {
+
+        httpSecurity
+                .csrf(csrf -> csrf.disable())
+                .cors(cors->cors.configurationSource(request ->
+                {
+                    CorsConfiguration config = new CorsConfiguration();
+
+                    config.setAllowedOrigins(List.of(host));
+                    config.setAllowedMethods(List.of("GET","POST","PUT","DELETE"));
+                    config.setAllowedHeaders(List.of(("*")));
+                    config.setAllowCredentials(true);
+                    return config;
+
+                }))
                 .authenticationProvider(provider)
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())
-                .authorizeHttpRequests(auth->auth
-                        .requestMatchers("/api/auth/register","/api/auth/register").permitAll()
-                                .requestMatchers("/api/admin/**").hasAnyRole("ADMIN")
+                .authorizeHttpRequests(auth -> auth
+                        // Public Endpoints
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
 
-                                .anyRequest().authenticated()
-                        );
+                        // Protected Admin Endpoints
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+
+                        // All other endpoints require authentication
+                        .anyRequest().authenticated()
 
 
-       return httpSecurity.build();
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
+        return httpSecurity.build();
     }
+
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig)
-    {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
-
 }

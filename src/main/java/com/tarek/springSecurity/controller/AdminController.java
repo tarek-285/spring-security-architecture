@@ -71,6 +71,9 @@ public class AdminController {
         UserResponse userResponse= roleService.assignRole(id,assignRole.getRoleIds() );
         return ResponseEntity.status(HttpStatus.OK).body(userResponse);
     }
-
-
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUserById(id);
+        return ResponseEntity.noContent().build();
+    }
 }

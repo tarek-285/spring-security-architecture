@@ -6,6 +6,7 @@ import com.tarek.springSecurity.entity.Role;
 import com.tarek.springSecurity.entity.User;
 import com.tarek.springSecurity.repository.Rolerepository;
 import com.tarek.springSecurity.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -80,4 +81,12 @@ public class UserService {
         return new UserResponse(user.getId(), user.getName(), user.getUsername(), user.getRoles());
     }
 
+    @Transactional
+    public void deleteUserById(Long id)
+    {
+
+       User user= userRepository.findById(id).orElseThrow(()->new RuntimeException("now user found with this id"));
+       userRepository.delete(user);
+
+    }
 }
